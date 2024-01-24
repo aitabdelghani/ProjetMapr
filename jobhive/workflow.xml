@@ -1,0 +1,62 @@
+<workflow-app name="My Workflow" xmlns="uri:oozie:workflow:0.5">
+    <start to="fork-b01b"/>
+    <kill name="Kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <action name="hive2-9d05" cred="hive2">
+        <hive2 xmlns="uri:oozie:hive2-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                 
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <jdbc-url>${jdbcURL}</jdbc-url>
+            <script>hive1.sql</script>
+             
+        </hive2>
+        <ok to="join-e392"/>
+        <error to="Kill"/>
+    </action>
+    <action name="email-bbe6">
+        <email xmlns="uri:oozie:email-action:0.2">
+            <to>mokhtar.sellami@gmail.com</to>
+            <subject>Hive QL</subject>
+            <body>Execution of Hive QL is done</body>
+            <content_type>text/plain</content_type>
+        </email>
+        <ok to="End"/>
+        <error to="Kill"/>
+    </action>
+    <action name="hive2-efa5" cred="hive2">
+        <hive2 xmlns="uri:oozie:hive2-action:0.1">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                 
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <jdbc-url>${jdbcURL}</jdbc-url>
+            <script>hive2.sql</script>
+             
+        </hive2>
+        <ok to="join-e392"/>
+        <error to="Kill"/>
+    </action>
+    <fork name="fork-b01b">
+        <path start="hive2-9d05" />
+        <path start="hive2-efa5" />
+    </fork>
+    <join name="join-e392" to="email-bbe6"/>
+    <end name="End"/>
+</workflow-app>
